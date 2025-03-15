@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lab Value Rush - Simple</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    
+    body {
+      background-color: #f0f4f8;
+      touch-action: manipulation;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+    
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: white;
+      overflow: hidden;
+    }
+    
+    #top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #2b6cb0;
+      color: white;
+      padding: 10px 15px;
+      height: 60px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    #level {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    #score {
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+    }
+    
+    #score-divider {
+      margin: 0 8px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    .score-icon {
+      margin-right: 5px;
+      font-size: 14px;
+    }
+    
+    #lives {
+      font-size: 16px;
+    }
+    
+    #game-area {
+      position: relative;
+      height: calc(100% - 120px);
+      background-color: #ebf8ff;
+      background-image: linear-gradient(to bottom, #ebf8ff, #dceefb);
+      overflow: hidden;
+    }
+    
+    #controls {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #2b6cb0;
+      height: 60px;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .control-btn {
+      background-color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .control-btn:active {
+      transform: scale(0.95);
+    }
+    
+    #low-btn {
+      color: #e53e3e;
+    }
+    
+    #normal-btn {
+      color: #38a169;
+    }
+    
+    #high-btn {
+      color: #dd6b20;
+    }
+    
+    .lab-card {
+      position: absolute;
+      width: 80%;
+      max-width: 300px;
+      padding: 18px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      border-left: 4px solid #3182ce;
+    }
+    
+    .lab-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1a365d;
+      margin-bottom: 10px;
+    }
+    
+    .lab-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2c5282;
+    }
+    
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.98);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .screen h1 {
+      color: #1a365d;
+      margin-bottom: 25px;
+      font-size: 32px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .screen p {
+      color: #2c5282;
+      margin-bottom: 15px;
+      font-size: 18px;
+      max-width: 80%;
+    }
+    
+    #level-badge {
+      background-color: #3182ce;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .btn {
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 25px;
+      font-size: 18px;
+      margin-top: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    
+    .btn:hover {
+      background-color: #2c5282;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .feedback {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(-50%);
+      transition: opacity 0.5s;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .correct {
+      color: #38a169;
+    }
+    
+    .incorrect {
+      color: #e53e3e;
+    }
+    
+    #reference-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      z-index: 20;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    #reference-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    #reference-box {
+      position: absolute;
+      top: 60px;
+      right: 15px;
+      background-color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 20;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      max-width: 280px;
+      max-height: 70%;
+      overflow-y: auto;
+    }
+    
+    .ref-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #2b6cb0;
+      font-size: 15px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 5px;
+    }
+    
+    @keyframes slideDown {
+      from { top: -150px; }
+      to { top: 100%; }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(-50%); }
+      20%, 60% { transform: translateX(-53%); }
+      40%, 80% { transform: translateX(-47%); }
+    }
+    
+    .correct-feedback {
+      background-color: #c6f6d5;
+    }
+    
+    .incorrect-feedback {
+      animation: shake 0.5s ease;
+      background-color: #fed7d7;
+    }
+
+    /* === NEW CSS FOR SUMMARY PAGE === */
+    #game-summary-screen {
+      overflow-y: auto;
+      max-height: 100%;
+      padding: 15px;
+    }
+
+    .summary-stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0 30px;
+    }
+
+    .stat-box {
+      background-color: white;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      min-width: 80px;
+      width: 30%;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2b6cb0;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    .lab-performance {
+      margin-bottom: 25px;
+    }
+
+    .lab-performance h2, .lab-history-container h2 {
+      color: #2b6cb0;
+      font-size: 20px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .lab-stats-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .lab-stat-item {
+      background-color: white;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .lab-stat-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #2d3748;
+    }
+
+    .lab-stat-bar {
+      height: 8px;
+      background-color: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .lab-stat-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .lab-stat-text {
+      font-size: 14px;
+      color: #4a5568;
+      text-align: right;
+    }
+
+    .lab-history-table-wrapper {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .lab-history-table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+
+    .lab-history-table th {
+      background-color: #2b6cb0;
+      color: white;
+      padding: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      text-align: left;
+    }
+
+    .lab-history-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .lab-history-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .correct-row {
+      background-color: rgba(198, 246, 213, 0.3);
+    }
+
+    .incorrect-row {
+      background-color: rgba(254, 215, 215, 0.3);
+    }
+
+    .low-cell {
+      color: #e53e3e;
+      font-weight: bold;
+    }
+
+    .normal-cell {
+      color: #38a169;
+      font-weight: bold;
+    }
+
+    .high-cell {
+      color: #dd6b20;
+      font-weight: bold;
+    }
+
+    .missed-cell {
+      color: #718096;
+      font-style: italic;
+    }
+
+    .summary-actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .summary-stats {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .stat-box {
+        width: 100%;
+      }
+      
+      .lab-history-table {
+        font-size: 14px;
+      }
+      
+      .lab-history-table th,
+      .lab-history-table td {
+        padding: 8px 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="top-bar">
+      <div id="level">Level: BMP</div>
+      <div id="score">Score: 0</div>
+      <div id="lives">Lives: ❤️❤️❤️</div>
+    </div>
+    
+    <div id="game-area">
+      <button id="reference-btn">?</button>
+      <div id="reference-box"></div>
+      <div id="feedback" class="feedback"></div>
+    </div>
+    
+    <div id="controls">
+      <button id="low-btn" class="control-btn">LOW</button>
+      <button id="normal-btn" class="control-btn">NORMAL</button>
+      <button id="high-btn" class="control-btn">HIGH</button>
+    </div>
+    
+    <div id="start-screen" class="screen">
+      <h1>Lab Value Rush</h1>
+      <p>Welcome to Lab Value Rush! Test your clinical laboratory knowledge as you progress through increasingly challenging levels. Can you master all 10 levels and become the ultimate Lab Value Champion?</p>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;">
+        <h2 style="margin-bottom: 10px; color: #2b6cb0;">Select Difficulty:</h2>
+        <button id="easy-mode-btn" class="btn" style="background-color: #38a169;">Easy Mode</button>
+        <p style="font-size: 14px; margin-bottom: 15px;">Lives refresh every level (3 per level)</p>
+        
+        <button id="medium-mode-btn" class="btn">Medium Mode</button>
+        <p style="font-size: 14px; margin-bottom: 15px;">3 lives for the entire game</p>
+        
+        <button id="hard-mode-btn" class="btn" style="background-color: #e53e3e;">Hard Mode</button>
+        <p style="font-size: 14px; margin-bottom: 5px;">One wrong answer and game over!</p>
+      </div>
+    </div>
+    
+    <div id="level-complete-screen" class="screen" style="display: none;">
+      <h1>Level Complete!</h1>
+      <div id="level-badge">Basic Metabolic Panel</div>
+      <p id="level-score">Level score: 0</p>
+      <p id="level-complete-message">Great job identifying those lab values!</p>
+      <p id="next-level-teaser" style="font-style: italic; color: #2b6cb0; margin-top: 10px;"></p>
+      <button id="next-level-btn" class="btn">Next Level</button>
+    </div>
+    
+    <div id="game-over-screen" class="screen" style="display: none;">
+      <h1>Game Over</h1>
+      <p id="final-score">Your score: 0</p>
+      <button id="restart-btn" class="btn">Play Again</button>
+    </div>
+    
+    <!-- This div will be created dynamically in the showGameSummary function,
+         but including it here for completeness -->
+    <div id="game-summary-screen" class="screen" style="display: none;">
+      <!-- Content will be dynamically generated -->
+    </div>
+  </div>
+
+  <script>
+    // Game configuration
+    const config = {
+      initialLives: 3,
+      cardSpeed: 8000, // milliseconds to reach bottom
+      speedIncrease: 200, // milliseconds faster per correct answer
+      minSpeed: 1000, // minimum speed in milliseconds (reduced for higher difficulty)
+      levelScoreThreshold: 10, // Score needed to complete a level
+      pointsPerCorrectAnswer: 10, // Points awarded for each correct answer
+      maxLevels: 10, // Total number of progressive difficulty levels
+      difficultyIncreaseFactor: 0.85 // Speed multiplier for each progressive level
+    };
+    
+    // Lab database
+    const labDatabase = {
+      BMP: {
+        title: "Basic Metabolic Panel",
+        labs: [
+          { name: "Sodium", units: "mEq/L", min: 135, max: 145 },
+          { name: "Potassium", units: "mEq/L", min: 3.5, max: 5.0 },
+          { name: "Chloride", units: "mEq/L", min: 95, max: 105 },
+          { name: "Bicarbonate", units: "mEq/L", min: 22, max: 26 },
+          { name: "BUN", units: "mg/dL", min: 8, max: 20 },
+          { name: "Creatinine", units: "mg/dL", min: 0.6, max: 1.2 },
+          { name: "Glucose", units: "mg/dL", min: 60, max: 100 }
+        ]
+      },
+      CBC: {
+        title: "Complete Blood Count",
+        labs: [
+          { name: "WBC", units: "K/μL", min: 4.5, max: 11.0 },
+          { name: "Hemoglobin (Male)", units: "g/dL", min: 13.5, max: 17.5 },
+          { name: "Hemoglobin (Female)", units: "g/dL", min: 12.0, max: 15.5 },
+          { name: "Hematocrit (Male)", units: "%", min: 41, max: 50 },
+          { name: "Hematocrit (Female)", units: "%", min: 36, max: 48 },
+          { name: "Platelets", units: "K/μL", min: 150, max: 450 }
+        ]
+      },
+      MIXED: {
+        title: "Mixed Labs (BMP & CBC)",
+        labs: [] // Will be populated at initialization
+      }
+    };
+    
+    // Game state
+    let gameState = {
+      level: "BMP",
+      score: 0,         // Cumulative score across all levels
+      levelScore: 0,    // Score for current level only
+      correctAnswers: 0, // Track correct answers for the current level
+      lives: config.initialLives,
+      currentSpeed: config.cardSpeed,
+      isPlaying: false,
+      activeCard: null,
+      cardTimer: null,
+      difficulty: "medium", // Default difficulty level
+      labHistory: [] // NEW: track lab history for summary
+    };
+    
+    // DOM elements
+    const gameArea = document.getElementById('game-area');
+    const levelDisplay = document.getElementById('level');
+    const scoreDisplay = document.getElementById('score');
+    const livesDisplay = document.getElementById('lives');
+    const startScreen = document.getElementById('start-screen');
+    const levelCompleteScreen = document.getElementById('level-complete-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const levelScoreDisplay = document.getElementById('level-score');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const easyModeBtn = document.getElementById('easy-mode-btn');
+    const mediumModeBtn = document.getElementById('medium-mode-btn');
+    const hardModeBtn = document.getElementById('hard-mode-btn');
+    const nextLevelBtn = document.getElementById('next-level-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const lowBtn = document.getElementById('low-btn');
+    const normalBtn = document.getElementById('normal-btn');
+    const highBtn = document.getElementById('high-btn');
+    const referenceBtn = document.getElementById('reference-btn');
+    const referenceBox = document.getElementById('reference-box');
+    const feedback = document.getElementById('feedback');
+    
+    // Initialize game
+    function init() {
+      // Combine lab values for MIXED level
+      labDatabase.MIXED.labs = [
+        ...labDatabase.BMP.labs,
+        ...labDatabase.CBC.labs
+      ];
+      
+      // Add event listeners
+      easyModeBtn.addEventListener('click', () => startGame('easy'));
+      mediumModeBtn.addEventListener('click', () => startGame('medium'));
+      hardModeBtn.addEventListener('click', () => startGame('hard'));
+      nextLevelBtn.addEventListener('click', nextLevel);
+      restartBtn.addEventListener('click', () => {
+        // Restart with same difficulty
+        startGame(gameState.difficulty);
+      });
+      lowBtn.addEventListener('click', () => checkAnswer('low'));
+      normalBtn.addEventListener('click', () => checkAnswer('normal'));
+      highBtn.addEventListener('click', () => checkAnswer('high'));
+      referenceBtn.addEventListener('click', toggleReference);
+      
+      // Initialize reference box
+      updateReferenceBox();
+    }
+    
+    // Define level order and tracking globally
+    let currentLevelIndex = 0;
+    let progressiveDifficultyLevel = 1;
+    const levelOrder = ["BMP", "CBC", "MIXED"];
+    
+    // Define level names and transitions
+    const levelData = [
+      {
+        name: "Electrolyte Explorer",
+        transition: "Well done, Electrolyte Explorer! Think you're ready to dive into the cellular world of hematology?"
+      },
+      {
+        name: "Blood Cell Detective",
+        transition: "Impressive blood cell analysis! Now let's see how you handle the mixed challenges of metabolic and hematologic values!"
+      },
+      {
+        name: "Mixed Masters",
+        transition: "You've mastered the basics! Ready to kick it up a notch with Rapid Response?"
+      },
+      {
+        name: "Rapid Response",
+        transition: "Your quick thinking saved the day! Up next: Critical Care conditions where accuracy matters most."
+      },
+      {
+        name: "Critical Care Crusader",
+        transition: "Outstanding work in Critical Care! Now prepare for the Emergency Department rush!"
+      },
+      {
+        name: "ER Rush Hour",
+        transition: "You handled the ER chaos like a pro! Let's see if you can keep up in the ICU!"
+      },
+      {
+        name: "ICU Intensity",
+        transition: "Solid ICU performance! Think you can handle the pressure of Trauma Team?"
+      },
+      {
+        name: "Trauma Team",
+        transition: "You've proven your trauma team skills! Now face the true test: Code Blue!"
+      },
+      {
+        name: "Code Blue",
+        transition: "You survived the Code Blue! One final challenge remains: the Lab Value Olympics!"
+      },
+      {
+        name: "Lab Value Olympics",
+        transition: "Congratulations! You've conquered all challenges and proven yourself to be the ultimate Lab Value Champion!"
+      }
+    ];
+    
+    // Handle level progression
+    function nextLevel() {
+      // Check if we've gone through all content levels and need to increase difficulty
+      if (currentLevelIndex === levelOrder.length - 1) {
+        // Stay on MIXED but increase progressive difficulty
+        progressiveDifficultyLevel++;
+        
+        if (progressiveDifficultyLevel > config.maxLevels) {
+          // Player has beaten the maximum difficulty level - show special win screen
+          gameWin();
+          return;
+        }
+        
+        // Keep level as MIXED but make it faster
+        // Apply exponential difficulty increase
+        gameState.baseSpeed = Math.max(
+          config.minSpeed,
+          config.cardSpeed * Math.pow(config.difficultyIncreaseFactor, progressiveDifficultyLevel - 1)
+        );
+      } else {
+        // Move to next content level in the order
+        currentLevelIndex++;
+        gameState.level = levelOrder[currentLevelIndex];
+        gameState.baseSpeed = config.cardSpeed;
+      }
+      
+      // Reset level tracking but keep cumulative score
+      gameState.levelScore = 0;
+      gameState.correctAnswers = 0;
+      gameState.currentSpeed = gameState.baseSpeed;
+      gameState.isPlaying = true;
+      
+      // Refresh lives if in easy mode
+      if (gameState.difficulty === 'easy') {
+        gameState.lives = config.initialLives;
+      }
+      
+      // Update reference box for new level
+      updateReferenceBox();
+      
+      // Hide level complete screen
+      levelCompleteScreen.style.display = 'none';
+      
+      // Update UI
+      updateUI();
+      
+      // Start spawning lab values
+      spawnLabValue();
+    }
+    
+    // Add new function for winning the game (reaching max level)
+    function gameWin() {
+      gameState.isPlaying = false;
+      
+      // Update the game over screen to show a win message
+      const gameOverTitle = document.querySelector('#game-over-screen h1');
+      gameOverTitle.textContent = 'Congratulations! You Won!';
+      
+      const gameOverMessage = document.createElement('p');
+      gameOverMessage.textContent = "You've conquered the Lab Value Olympics and proven yourself to be the ultimate Lab Value Champion! Your quick thinking and accurate diagnoses have saved countless lives!";
+      gameOverMessage.style.color = '#38a169';
+      gameOverMessage.style.fontWeight = 'bold';
+      gameOverMessage.style.marginBottom = '20px';
+      
+      const existingMessage = document.querySelector('#final-score');
+      
+      // Only add the message if it doesn't exist already
+      if (!document.querySelector('#game-over-screen p:not(#final-score)')) {
+        existingMessage.parentNode.insertBefore(gameOverMessage, existingMessage);
+      }
+      
+      // Create difficulty message
+      let difficultyText = "";
+      switch(gameState.difficulty) {
+        case 'easy':
+          difficultyText = "Difficulty: Easy Mode";
+          break;
+        case 'medium':
+          difficultyText = "Difficulty: Medium Mode";
+          break;
+        case 'hard':
+          difficultyText = "Difficulty: Hard Mode";
+          break;
+      }
+      
+      // Display difficulty and final score
+      finalScoreDisplay.innerHTML = `${difficultyText}<br>Final score: ${gameState.score}`;
+      
+      // Add a view summary button (similar to gameOver function)
+      const viewSummaryBtn = document.createElement('button');
+      viewSummaryBtn.id = 'view-summary-btn';
+      viewSummaryBtn.className = 'btn';
+      viewSummaryBtn.style.marginTop = '10px';
+      viewSummaryBtn.textContent = 'View Detailed Summary';
+      viewSummaryBtn.addEventListener('click', () => {
+        gameOverScreen.style.display = 'none';
+        showGameSummary();
+      });
+      
+      // Check if we already added the button
+      if (!document.getElementById('view-summary-btn')) {
+        document.getElementById('restart-btn').insertAdjacentElement('beforebegin', viewSummaryBtn);
+      }
+      
+      gameOverScreen.style.display = 'flex';
+    }
+    
+    // Start game
+    function startGame(difficulty) {
+      // Set difficulty
+      gameState.difficulty = difficulty || 'medium';
+      
+      // Set initial lives based on difficulty
+      switch(gameState.difficulty) {
+        case 'easy':
+          gameState.lives = config.initialLives;
+          break;
+        case 'medium':
+          gameState.lives = config.initialLives;
+          break;
+        case 'hard':
+          gameState.lives = 1;
+          break;
+        default:
+          gameState.lives = config.initialLives;
+      }
+      
+      // Reset level tracking
+      currentLevelIndex = 0; // Start with BMP
+      progressiveDifficultyLevel = 1;
+      
+      // Remove win message if it exists
+      const gameOverTitle = document.querySelector('#game-over-screen h1');
+      gameOverTitle.textContent = 'Game Over';
+      
+      const winMessage = document.querySelector('#game-over-screen p:not(#final-score)');
+      if (winMessage) {
+        winMessage.remove();
+      }
+      
+      // Reset game state
+      gameState = {
+        level: levelOrder[currentLevelIndex],
+        score: 0,        // Reset cumulative score
+        levelScore: 0,   // Reset level score
+        correctAnswers: 0, // Reset correct answers counter
+        lives: (gameState.difficulty === 'hard') ? 1 : config.initialLives,
+        baseSpeed: config.cardSpeed,
+        currentSpeed: config.cardSpeed,
+        isPlaying: true,
+        activeCard: null,
+        cardTimer: null,
+        difficulty: difficulty || 'medium', // Keep track of difficulty
+        labHistory: [] // NEW: Reset the lab history when starting a new game
+      };
+      
+      // Update UI
+      updateUI();
+      
+      // Update reference box
+      updateReferenceBox();
+      
+      // Hide screens
+      startScreen.style.display = 'none';
+      levelCompleteScreen.style.display = 'none';
+      gameOverScreen.style.display = 'none';
+      
+      // Start spawning lab values
+      spawnLabValue();
+    }
+    
+    // Update UI
+    function updateUI() {
+      // Calculate the current level number (1-10)
+      let currentLevelNumber;
+      if (gameState.level === "MIXED" && progressiveDifficultyLevel > 1) {
+        currentLevelNumber = currentLevelIndex + 1 + (progressiveDifficultyLevel - 1);
+      } else {
+        currentLevelNumber = currentLevelIndex + 1;
+      }
+      
+      // Get the level name from our level data
+      const levelName = levelData[currentLevelNumber - 1].name;
+      
+      // Show the level number and name
+      levelDisplay.textContent = `Level ${currentLevelNumber}: ${levelName}`;
+      
+      // Display completion counter and total score with improved formatting
+      scoreDisplay.innerHTML = `
+        <span class="score-icon">🔄</span>${gameState.correctAnswers}/${config.levelScoreThreshold}
+        <span id="score-divider">|</span>
+        <span class="score-icon">🏆</span>${gameState.score}
+      `;
+      livesDisplay.textContent = `Lives: ${'❤️'.repeat(gameState.lives)}`;
+    }
+    
+    // Update reference box
+    function updateReferenceBox() {
+      const labs = labDatabase[gameState.level].labs;
+      const title = labDatabase[gameState.level].title;
+      
+      let content = `<div class="ref-title">${title} Normal Ranges:</div>`;
+      
+      // Create a more structured reference display
+      labs.forEach(lab => {
+        content += `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-weight: 500;">${lab.name}:</span> 
+          <span style="color: #2c5282;">${lab.min}-${lab.max} ${lab.units}</span>
+        </div>`;
+      });
+      
+      referenceBox.innerHTML = content;
+    }
+    
+    // Toggle reference box
+    function toggleReference() {
+      referenceBox.style.display = referenceBox.style.display === 'block' ? 'none' : 'block';
+    }
+    
+    // Spawn a lab value
+    function spawnLabValue() {
+      if (!gameState.isPlaying) return;
+      
+      // Get random lab from current level
+      const labs = labDatabase[gameState.level].labs;
+      const lab = labs[Math.floor(Math.random() * labs.length)];
+      
+      // Generate value and category
+      let value, category;
+      const rand = Math.random();
+      
+      if (rand < 0.4) {
+        // Normal value (40% chance)
+        value = lab.min + Math.random() * (lab.max - lab.min);
+        category = 'normal';
+      } else if (rand < 0.7) {
+        // Low value (30% chance)
+        value = lab.min * (0.5 + Math.random() * 0.4);
+        category = 'low';
+      } else {
+        // High value (30% chance)
+        value = lab.max * (1.1 + Math.random() * 0.4);
+        category = 'high';
+      }
+      
+      // Format value
+      let formattedValue;
+      if (lab.name === "pH") {
+        formattedValue = value.toFixed(2);
+      } else if (lab.name === "Potassium" || lab.name === "Creatinine") {
+        formattedValue = value.toFixed(1);
+      } else {
+        formattedValue = Math.round(value);
+      }
+      
+      // Create card element
+      const card = document.createElement('div');
+      card.className = 'lab-card';
+      card.innerHTML = `
+        <div class="lab-name">${lab.name}</div>
+        <div class="lab-value">${formattedValue} ${lab.units}</div>
+      `;
+      
+      // Add to game area
+      gameArea.appendChild(card);
+      
+      // Start animation
+      card.style.animation = `slideDown ${gameState.currentSpeed / 1000}s linear forwards`;
+      
+      // Store active card data
+      gameState.activeCard = {
+        element: card,
+        lab: lab,
+        value: parseFloat(formattedValue),
+        category: category
+      };
+      
+      // Set timer for missed card
+      gameState.cardTimer = setTimeout(() => {
+        if (gameState.activeCard && gameState.activeCard.element === card) {
+          missedCard();
+        }
+      }, gameState.currentSpeed);
+    }
+    
+    // Check answer
+    function checkAnswer(answer) {
+      if (!gameState.activeCard) return;
+      
+      clearTimeout(gameState.cardTimer);
+      
+      const card = gameState.activeCard.element;
+      const correctCategory = gameState.activeCard.category;
+      
+      // NEW: Record the lab value and whether it was correctly identified
+      gameState.labHistory.push({
+        name: gameState.activeCard.lab.name,
+        units: gameState.activeCard.lab.units,
+        value: gameState.activeCard.value,
+        actualCategory: gameState.activeCard.category,
+        userAnswer: answer,
+        isCorrect: answer === gameState.activeCard.category,
+        min: gameState.activeCard.lab.min,
+        max: gameState.activeCard.lab.max,
+        level: gameState.level,
+        levelNumber: currentLevelIndex + 1 + (gameState.level === "MIXED" && progressiveDifficultyLevel > 1 ? progressiveDifficultyLevel - 1 : 0)
+      });
+      
+      if (answer === correctCategory) {
+        // Correct answer - award points
+        const pointsEarned = config.pointsPerCorrectAnswer;
+        gameState.score += pointsEarned;      // Add to cumulative score
+        gameState.levelScore += pointsEarned; // Add to level score
+        gameState.correctAnswers += 1;        // Increment correct answers counter
+        
+        card.classList.add('correct-feedback');
+        showFeedback(`Correct! +${pointsEarned}`, 'correct');
+        
+        // Increase speed
+        gameState.currentSpeed = Math.max(config.minSpeed, gameState.currentSpeed - config.speedIncrease);
+      } else {
+        // Incorrect answer - lose a life but no score change
+        gameState.lives--;
+        card.classList.add('incorrect-feedback');
+        showFeedback('Incorrect!', 'incorrect');
+      }
+      
+      // Update UI
+      updateUI();
+      
+      // Remove card
+      setTimeout(() => {
+        if (card.parentNode) {
+          card.parentNode.removeChild(card);
+        }
+        gameState.activeCard = null;
+        
+        // Check if game over
+        if (gameState.lives <= 0) {
+          gameOver();
+        } else if (gameState.correctAnswers === config.levelScoreThreshold) {
+          // Level complete - must have EXACTLY the required number of correct answers
+          levelComplete();
+        } else {
+          spawnLabValue();
+        }
+      }, 500);
+    }
+    
+    // Missed card
+    function missedCard() {
+      if (!gameState.activeCard) return;
+      
+      const card = gameState.activeCard.element;
+      
+      // NEW: Record the missed lab value
+      gameState.labHistory.push({
+        name: gameState.activeCard.lab.name,
+        units: gameState.activeCard.lab.units,
+        value: gameState.activeCard.value,
+        actualCategory: gameState.activeCard.category,
+        userAnswer: "missed",
+        isCorrect: false,
+        min: gameState.activeCard.lab.min,
+        max: gameState.activeCard.lab.max,
+        level: gameState.level,
+        levelNumber: currentLevelIndex + 1 + (gameState.level === "MIXED" && progressiveDifficultyLevel > 1 ? progressiveDifficultyLevel - 1 : 0)
+      });
+      
+      // Lost a life - no score penalty
+      gameState.lives--;
+      card.classList.add('incorrect-feedback');
+      showFeedback('Too slow!', 'incorrect');
+      
+      // Update UI
+      updateUI();
+      
+      // Remove card
+      setTimeout(() => {
+        if (card.parentNode) {
+          card.parentNode.removeChild(card);
+        }
+        gameState.activeCard = null;
+        
+        // Check if game over
+        if (gameState.lives <= 0) {
+          gameOver();
+        } else if (gameState.correctAnswers === config.levelScoreThreshold) {
+          // Level complete - must have EXACTLY the required number of correct answers
+          levelComplete();
+        } else {
+          spawnLabValue();
+        }
+      }, 500);
+    }
+    
+    // Show feedback
+    function showFeedback(message, type) {
+      feedback.textContent = message;
+      feedback.className = `feedback ${type}`;
+      feedback.style.opacity = 1;
+      
+      setTimeout(() => {
+        feedback.style.opacity = 0;
+      }, 1000);
+    }
+    
+    // Level complete
+    function levelComplete() {
+      gameState.isPlaying = false;
+      
+      // Calculate the current level number (1-10)
+      let currentLevelNumber;
+      if (gameState.level === "MIXED" && progressiveDifficultyLevel > 1) {
+        currentLevelNumber = currentLevelIndex + 1 + (progressiveDifficultyLevel - 1);
+      } else {
+        currentLevelNumber = currentLevelIndex + 1;
+      }
+      
+      // Get the level name from our level data
+      const levelName = levelData[currentLevelNumber - 1].name;
+      
+      // Update level badge
+      const levelBadge = document.getElementById('level-badge');
+      levelBadge.textContent = `Level ${currentLevelNumber}: ${levelName}`;
+      
+      // Update score displays - should always show the exact threshold for completion
+      levelScoreDisplay.textContent = `Correct: ${config.levelScoreThreshold}/${config.levelScoreThreshold} | Points: ${gameState.levelScore} | Total: ${gameState.score}`;
+      
+      // Show teaser for next level (if not at the last level)
+      const nextLevelTeaser = document.getElementById('next-level-teaser');
+      if (currentLevelNumber < 10) {
+        nextLevelTeaser.textContent = levelData[currentLevelNumber - 1].transition;
+        nextLevelTeaser.style.display = 'block';
+      } else {
+        nextLevelTeaser.style.display = 'none';
+      }
+      
+      // Show level complete screen
+      levelCompleteScreen.style.display = 'flex';
+    }
+    
+    // Game over
+    function gameOver() {
+      gameState.isPlaying = false;
+      
+      // Create difficulty message
+      let difficultyText = "";
+      switch(gameState.difficulty) {
+        case 'easy':
+          difficultyText = "Difficulty: Easy Mode";
+          break;
+        case 'medium':
+          difficultyText = "Difficulty: Medium Mode";
+          break;
+        case 'hard':
+          difficultyText = "Difficulty: Hard Mode";
+          break;
+      }
+      
+      // Display difficulty and final score
+      finalScoreDisplay.innerHTML = `${difficultyText}<br>Your total score: ${gameState.score}`;
+      
+      // Add a view summary button
+      const viewSummaryBtn = document.createElement('button');
+      viewSummaryBtn.id = 'view-summary-btn';
+      viewSummaryBtn.className = 'btn';
+      viewSummaryBtn.style.marginTop = '10px';
+      viewSummaryBtn.textContent = 'View Detailed Summary';
+      viewSummaryBtn.addEventListener('click', () => {
+        gameOverScreen.style.display = 'none';
+        showGameSummary();
+      });
+      
+      // Check if we already added the button
+      if (!document.getElementById('view-summary-btn')) {
+        document.getElementById('restart-btn').insertAdjacentElement('beforebegin', viewSummaryBtn);
+      }
+      
+      gameOverScreen.style.display = 'flex';
+    }
+    
+    // NEW: Game Summary function
+    function showGameSummary() {
+      // Create summary screen element if it doesn't exist
+      let summaryScreen = document.getElementById('game-summary-screen');
+      if (!summaryScreen) {
+        summaryScreen = document.createElement('div');
+        summaryScreen.id = 'game-summary-screen';
+        summaryScreen.className = 'screen';
+        document.getElementById('game-container').appendChild(summaryScreen);
+      }
+
+      // Calculate statistics
+      const totalAnswers = gameState.labHistory.length;
+      const correctAnswers = gameState.labHistory.filter(item => item.isCorrect).length;
+      const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
+      
+      // Group lab values by type for statistics
+      const labStats = {};
+      gameState.labHistory.forEach(lab => {
+        if (!labStats[lab.name]) {
+          labStats[lab.name] = { total: 0, correct: 0 };
+        }
+        labStats[lab.name].total++;
+        if (lab.isCorrect) {
+          labStats[lab.name].correct++;
+        }
+      });
+
+      // Create lab performance overview
+      let labPerformanceHTML = '';
+      for (const labName in labStats) {
+        const labStat = labStats[labName];
+        const labAccuracy = Math.round((labStat.correct / labStat.total) * 100);
+        const accuracyColor = labAccuracy >= 80 ? '#38a169' : (labAccuracy >= 60 ? '#dd6b20' : '#e53e3e');
+        
+        labPerformanceHTML += `
+          <div class="lab-stat-item">
+            <div class="lab-stat-name">${labName}</div>
+            <div class="lab-stat-bar">
+              <div class="lab-stat-fill" style="width: ${labAccuracy}%; background-color: ${accuracyColor};"></div>
+            </div>
+            <div class="lab-stat-text">${labStat.correct}/${labStat.total} (${labAccuracy}%)</div>
+          </div>
+        `;
+      }
+
+      // Generate the HTML for the summary screen
+      summaryScreen.innerHTML = `
+        <h1>Game Summary</h1>
+        <div class="summary-stats">
+          <div class="stat-box">
+            <div class="stat-value">${accuracy}%</div>
+            <div class="stat-label">Overall Accuracy</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${correctAnswers}</div>
+            <div class="stat-label">Correct Answers</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">${totalAnswers - correctAnswers}</div>
+            <div class="stat-label">Incorrect/Missed</div>
+          </div>
+        </div>
+
+        <div class="lab-performance">
+          <h2>Lab Performance</h2>
+          <div class="lab-stats-container">
+            ${labPerformanceHTML}
+          </div>
+        </div>
+
+        <div class="lab-history-container">
+          <h2>Lab Value History</h2>
+          <div class="lab-history-table-wrapper">
+            <table class="lab-history-table">
+              <thead>
+                <tr>
+                  <th>Level</th>
+                  <th>Lab</th>
+                  <th>Value</th>
+                  <th>Range</th>
+                  <th>Actual</th>
+                  <th>Your Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${gameState.labHistory.map(lab => `
+                  <tr class="${lab.isCorrect ? 'correct-row' : 'incorrect-row'}">
+                    <td>${lab.levelNumber}</td>
+                    <td>${lab.name}</td>
+                    <td>${lab.value} ${lab.units}</td>
+                    <td>${lab.min}-${lab.max}</td>
+                    <td class="${lab.actualCategory}-cell">${lab.actualCategory.toUpperCase()}</td>
+                    <td class="${lab.userAnswer}-cell">${lab.userAnswer === 'missed' ? 'MISSED' : lab.userAnswer.toUpperCase()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="summary-actions">
+          <button id="play-again-btn" class="btn">Play Again</button>
+        </div>
+      `;
+
+      // Add event listener to the play again button
+      document.getElementById('play-again-btn').addEventListener('click', () => {
+        summaryScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+      });
+
+      // Show the summary screen
+      summaryScreen.style.display = 'flex';
+    }
+    
+    // Initialize game
+    init();
+  </script>
+</body>
+</html>
